@@ -1,0 +1,56 @@
+name: Coolbox Catalog Scrape
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Límite opcional de productos (vacío = todos)'
+        required: false
+        default: ''
+  schedule:
+    - cron: '20 8 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: coolbox-catalog-scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - run: pip install -r requirements.txt
+      - name: Extraer catálogo
+        shell: bash
+        run: |
+          LIMIT="${{ github.event.inputs.limit }}"
+          if [ -n "$LIMIT" ]; then
+            python scraper.py --limit "$LIMIT"
+          else
+            python scraper.py
+          fi
+      - name: Publicar Excel como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coolbox-catalog-${{ github.run_number }}
+          path: |
+            output/coolbox_catalog.xlsx
+            output/summary.json
+            output/errors.json
+          retention-days: 30
+      - name: Actualizar datos ligeros del panel
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data/catalog.json
+          git diff --cached --quiet && exit 0
+          git commit -m "data: update Coolbox catalog"
+          git push
