@@ -47,10 +47,15 @@ jobs:
             output/errors.json
           retention-days: 30
       - name: Actualizar catálogo web
+        shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cp docs/data/catalog.json /tmp/catalog.json
+          git fetch origin main
+          git reset --hard origin/main
+          cp /tmp/catalog.json docs/data/catalog.json
           git add docs/data/catalog.json
           git diff --cached --quiet && exit 0
           git commit -m "data: update Coolbox catalog v2"
-          git push
+          git push origin HEAD:main
