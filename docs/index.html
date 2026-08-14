@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Coolbox Catalog Explorer</title>
+  <style>
+    :root{font-family:Inter,system-ui,sans-serif;background:#0b0d12;color:#edf1f7}*{box-sizing:border-box}body{margin:0}.wrap{max-width:1500px;margin:auto;padding:28px}h1{margin:0 0 6px}.muted{color:#9aa4b2}.toolbar{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin:24px 0}input,select{background:#151923;border:1px solid #293041;color:#fff;border-radius:10px;padding:12px}.stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}.stat{background:#151923;border:1px solid #262d3b;border-radius:12px;padding:12px 16px}.tablewrap{overflow:auto;border:1px solid #262d3b;border-radius:14px}table{width:100%;border-collapse:collapse;min-width:1050px}th,td{text-align:left;padding:11px 12px;border-bottom:1px solid #202635;font-size:14px}th{position:sticky;top:0;background:#151923}a{color:#8ab4ff}.ok{color:#62d394}.no{color:#ff8080}@media(max-width:800px){.toolbar{grid-template-columns:1fr}.wrap{padding:16px}}
+  </style>
+</head>
+<body><main class="wrap">
+  <h1>Coolbox Catalog Explorer</h1><div class="muted">Catálogo extraído desde fuentes públicas de Coolbox.</div>
+  <div class="toolbar"><input id="q" placeholder="Buscar nombre, SKU o marca…"><select id="brand"><option value="">Todas las marcas</option></select><select id="stock"><option value="">Todo</option><option value="yes">Con stock</option><option value="no">Sin stock</option></select></div>
+  <div class="stats"><div class="stat"><b id="count">0</b><div class="muted">productos visibles</div></div><div class="stat"><b id="updated">—</b><div class="muted">última extracción</div></div></div>
+  <div class="tablewrap"><table><thead><tr><th>Producto</th><th>SKU</th><th>Marca</th><th>Precio</th><th>Lista</th><th>Stock</th><th>Categoría</th><th>Link</th></tr></thead><tbody id="rows"></tbody></table></div>
+</main><script>
+let products=[];const $=s=>document.querySelector(s);const money=n=>Number.isFinite(+n)?`S/ ${(+n).toFixed(2)}`:'—';
+function render(){const q=$('#q').value.toLowerCase(),brand=$('#brand').value,stock=$('#stock').value;const out=products.filter(p=>(!q||`${p.name} ${p.sku} ${p.brand}`.toLowerCase().includes(q))&&(!brand||p.brand===brand)&&(!stock||(stock==='yes'?p.available:!p.available)));$('#count').textContent=out.length;$('#rows').innerHTML=out.slice(0,1500).map(p=>`<tr><td>${p.name||'—'}</td><td>${p.sku||'—'}</td><td>${p.brand||'—'}</td><td>${money(p.price)}</td><td>${money(p.listPrice)}</td><td class="${p.available?'ok':'no'}">${p.available?(p.stock??'Sí'):'No'}</td><td>${p.category||'—'}</td><td><a href="${p.url}" target="_blank" rel="noreferrer">Abrir</a></td></tr>`).join('')}
+fetch('./data/catalog.json').then(r=>r.json()).then(d=>{products=d.products||[];const brands=[...new Set(products.map(p=>p.brand).filter(Boolean))].sort();$('#brand').innerHTML+=[...brands].map(b=>`<option>${b}</option>`).join('');$('#updated').textContent=products[0]?.updated?.slice(0,10)||'—';render()}).catch(()=>{$('#rows').innerHTML='<tr><td colspan="8">Aún no hay extracción. Ejecuta el workflow.</td></tr>'});['q','brand','stock'].forEach(id=>$('#'+id).addEventListener('input',render));
+</script></body></html>
