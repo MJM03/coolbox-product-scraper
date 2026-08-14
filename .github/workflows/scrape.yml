@@ -1,4 +1,4 @@
-name: Coolbox Catalog Scrape
+name: Coolbox Catalog Scrape V2
 
 on:
   workflow_dispatch:
@@ -28,29 +28,29 @@ jobs:
           python-version: '3.12'
           cache: 'pip'
       - run: pip install -r requirements.txt
-      - name: Extraer catálogo
+      - name: Extraer catálogo V2
         shell: bash
         run: |
           LIMIT="${{ github.event.inputs.limit }}"
           if [ -n "$LIMIT" ]; then
-            python scraper.py --limit "$LIMIT"
+            python scraper_v2.py --limit "$LIMIT"
           else
-            python scraper.py
+            python scraper_v2.py
           fi
-      - name: Publicar Excel como artifact
+      - name: Publicar Excel V2 como artifact
         uses: actions/upload-artifact@v4
         with:
-          name: coolbox-catalog-${{ github.run_number }}
+          name: coolbox-catalog-v2-${{ github.run_number }}
           path: |
             output/coolbox_catalog.xlsx
             output/summary.json
             output/errors.json
           retention-days: 30
-      - name: Actualizar datos ligeros del panel
+      - name: Actualizar catálogo web
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/data/catalog.json
           git diff --cached --quiet && exit 0
-          git commit -m "data: update Coolbox catalog"
+          git commit -m "data: update Coolbox catalog v2"
           git push
