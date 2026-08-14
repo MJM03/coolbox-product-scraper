@@ -1,0 +1,14 @@
+{
+  "name": "Coolbox Catalog",
+  "short_name": "Coolbox",
+  "description": "Explorador móvil del catálogo de Coolbox Perú",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#090b10",
+  "theme_color": "#090b10",
+  "orientation": "portrait-primary",
+  "icons": [
+    {"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
